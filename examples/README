@@ -1,0 +1,53 @@
+Config file args:
+name <nodename>
+listen_addr <ip4/6>
+listen_port <tcpport>
+crypto_workers <num>
+checksum_workers <num>
+tap_name <tap>
+private_key <priv.key>
+servers_config <ini.file>
+log_file <logfile>
+pid_file <pidfile>
+log_level <log.lvl>
+forground <yes/no>
+queue_size <int_qsize>
+max_arp_ttl <ttl>
+dict_algorithm <avl16/avl24/hashtab16/hashtab24>
+max_password_wait_time <sec>
+perf_counter_dump_file <file.perf>
+perf_counter_dump_interval <sec>
+conn_stat_dump_file <file.txt>
+conn_stat_dump_interval <sec>
+onTapCreate <file.sh>
+onTcpListen <file.sh>
+onClientConnect <file.sh>
+onConnect <file.sh>
+onClientConnectFail <file.sh>
+onConnectFail <file.sh>
+onConnectionEnd <file.sh>
+onTryConnect <file.sh>
+
+INI file:
+connect_addr <ip4/6/dns>
+connect_port <tcpport>
+public_key <file.pub>
+keepalive <a> <b>
+auto_connect <yes/no>
+allow_new_connect <yes/no>
+try_reconnect_sec <s>
+cipher <aes:ctr/aes:mixed/twofish:ctr/twofish:mixed>
+checksum <sha224/sha256/sha384/sha512>
+limit_output_buffer_size <bytes>
+output_auth_method <4/5>
+limit_output_chunk_size <bytes>
+mode <normal/offline backup/active backup>
+backup <master>
+password_verifier <cmd.sh>
+password_injecter <cmd.sh>
+sessid_receiver <cmd.sh>
+send_sessid <yes/no>
+send_extra_info <yes/no>
+
+
+INI file reload on the fly after SIGUSR1.

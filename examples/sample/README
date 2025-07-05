@@ -1,0 +1,12 @@
+Example with only to nodes in 1:1 configuration.
+
+For generate keys:
+uVPN_rsagen 2048 |tee node.priv |head -2 >node.pub
+
+Public keys have to be exchanged in other, secure channel.
+
+Example of start kit-uvpn instance and add tap interface to bridge lanbr0 as
+regular user:
+
+kit-easy-tap kvm%u:lanbr0 kvm_tap.txt \
+uVPN3 config uVPN3.conf tap_name '<TAP>'
