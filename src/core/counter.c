@@ -185,7 +185,7 @@ void counter_worker_raw_net(void * void_data, size_t data_size)
 
   if ((data->net.checksum.type == entry->checksum.type) &&
       (data->net.checksum.type >= CHECKSUM_SHA224) &&
-      (data->net.checksum.type <= CHECKSUM_SHA512) && (diff)) {
+      (data->net.checksum.type <= CHECKSUM_SHA512) && (diff != 0)) {
     data->net.checksum.type |= 0x8000;
   } else {
     entry->checksum.u64 = htobe64(be64toh(entry->checksum.u64) + 1);
