@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __TCP_H__
-#define __TCP_H__
+#pragma once
 
 #include "global.h"
 #include "config.h"
@@ -17,5 +16,3 @@ void tcp_ping(struct tcp_conn_info * data, int flag, uint32_t pkg_idx);
 void tcp_worker(struct tcp_conn_info * info, void * data, size_t data_size);
 void send_tcp_close(struct tcp_conn_info * info);
 void tcp_sent_backup_freeze(conn_id_t conn_id, const char * name);
-
-#endif

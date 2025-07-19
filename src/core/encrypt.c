@@ -1,8 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#include "decrypt.h"
+#include "encrypt.h"
 #include <string.h>
 #include "conststr.h"
 #include <clock.h>

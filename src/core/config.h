@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -34,6 +33,9 @@ struct static_servers_config_t
   char * sessid_receiver;
   unsigned char send_sessid;
   unsigned char send_extra_info;
+
+  uint16_t vlan_id;
+  uint32_t allowed_vlans[MAX_VLAN_ID / 32];
 
   // non configurable part
   uint64_t last_reconnect_try;
@@ -66,6 +68,7 @@ struct config_t
   char * conn_stat_dump_file;
   unsigned short conn_stat_dump_interval;
   char * queue_layout;
+  uint32_t tap_vlans[MAX_VLAN_ID / 32];
 
   char * onTapCreate;
   char * onTcpListen;
@@ -98,5 +101,3 @@ long server_config_cmp_full(const struct static_servers_config_t * a,
     const struct static_servers_config_t * b);
 
 struct RSA * load_rsakey(const char * path);
-
-#endif

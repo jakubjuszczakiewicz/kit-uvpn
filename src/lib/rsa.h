@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __RSA_H__
-#define __RSA_H__
+#pragma once
 
 #include <stddef.h>
 
@@ -29,5 +28,3 @@ size_t rsa_enc_pub(const struct RSA *thiz, const unsigned char *in,
     size_t len, unsigned char *out);
 size_t rsa_dec_prv(const struct RSA *thiz, const unsigned char *in,
     size_t len, unsigned char *out);
-
-#endif

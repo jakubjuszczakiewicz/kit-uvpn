@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -16,6 +16,7 @@
 #include "tcp.h"
 #include "tap.h"
 #include "connection.h"
+#include "vlan.h"
 
 extern struct thpool_t * decrypt_thpool;
 extern struct thpool_t * encrypt_thpool;
@@ -139,6 +140,7 @@ void crypto_in_thread_executor(void * data_void)
 
   decrypt_worker(data->data, data->data_size);
   checksum_worker(data->data, data->data_size);
+  vlan_worker(data->data, data->data_size);
   data->clean_up(data->cleanup_queue, data->cleanup_task_id);
   atomic_store(&data->locked, 0);
 }
@@ -278,6 +280,7 @@ void crypto_out_thread_executor(void * data_void)
 {
   struct thpool_data * data = (struct thpool_data *)data_void;
 
+  vlan2_worker(data->data, data->data_size);
   checksum2_worker(data->data, data->data_size);
   encrypt_worker(data->data, data->data_size);
   data->clean_up(data->cleanup_queue, data->cleanup_task_id);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -26,6 +26,8 @@ typedef struct conn_entry
   uint16_t flags;
   checksum_t checksum;
   encrypt_key_t key;
+  uint16_t vlan_id;
+  uint32_t vlan_mask[MAX_VLAN_ID / 32];
 } conn_entry_t;
 
 static conn_entry_t g_conn_table[MAX_CONNECTIONS];
@@ -53,9 +55,12 @@ void counter_worker_new_conn(void * void_data, size_t data_size)
   entry->flags = CTR_FLAG_VALID;
   entry->checksum = data->conn.checksum;
   memcpy(&entry->key, &data->conn.encrypt_key, sizeof(entry->key));
+  entry->vlan_id = data->conn.vlan_id;
+  memcpy(&entry->vlan_mask, &data->conn.vlan_mask,
+      sizeof(entry->vlan_mask));
 
-  logger_printf(LOGGER_DEBUG, "New connection/unfreezing from %u",
-      data->source);
+  logger_printf(LOGGER_DEBUG, "New connection/unfreezing from %u vlan %u",
+      data->source, entry->vlan_id);
 }
 
 void counter_worker_close_conn(void * void_data, size_t data_size)
@@ -99,14 +104,48 @@ void counter_worker_raw_net(void * void_data, size_t data_size)
       (be16toh(data->net.type) == PKT_TYPE_ETHERNET_EXTRA_INFO))
     return;
 
-  if ((data->destination < 1) || ((data->destination & 0xFFFF) < 1))
+  if ((data->destination < 1) || ((data->destination & 0xFFFF) < 1)) {
     return;
+  }
 
   size_t idx = CONN_ID_NUM(data->destination);
   conn_entry_t * entry = &g_conn_table[idx];
   if (entry->conn != data->destination) {
     data->msg_type = MSG_TYPE_INVALID;
     return;
+  }
+
+  uint16_t vlan_id, eth_proto = (data->net.ethframe.proto[0] << 8) |
+      data->net.ethframe.proto[1];
+  if (eth_proto != VLAN_PROTO_ID)
+    vlan_id = 0;
+  else
+    vlan_id = ((data->net.ethframe.proto[2] << 8) |
+        data->net.ethframe.proto[3]) & 0x0FFF;
+
+  if (vlan_id != 0) {
+    size_t idx2 = CONN_ID_NUM(data->source);
+    if (data->source != TAP_CONN_ID) {
+      conn_entry_t * entry2 = &g_conn_table[idx2];
+      if (((entry2->vlan_mask[vlan_id >> 5] >> (vlan_id & 0x1F)) & 1) == 0) {
+        data->msg_type = MSG_TYPE_DROP;
+        return;
+      }
+    }
+  }
+
+  if (((entry->vlan_mask[vlan_id >> 5] >> (vlan_id & 0x1F)) & 1) == 0) {
+    if (vlan_id != entry->vlan_id) {
+      data->msg_type = MSG_TYPE_DROP;
+      return;
+    }
+  }
+
+  int16_t diff = 0;
+  if ((entry->vlan_id != 0) && (entry->vlan_id == vlan_id)) {
+    data->net.vlan_opt = VLAN_OPT_REMOVE_OUTPUT;
+    data->net.vlan_id = entry->vlan_id;
+    diff = -4;
   }
 
   if (be16toh(data->net.type) == PKT_TYPE_ETHERNET_BACKUP_FREEZE) {
@@ -142,11 +181,11 @@ void counter_worker_raw_net(void * void_data, size_t data_size)
   }
 
   uint16_t length = data->net.packet_size +
-      get_checksum_size(entry->checksum.type);
+      get_checksum_size(entry->checksum.type) + diff;
 
   if ((data->net.checksum.type == entry->checksum.type) &&
       (data->net.checksum.type >= CHECKSUM_SHA224) &&
-      (data->net.checksum.type <= CHECKSUM_SHA512)) {
+      (data->net.checksum.type <= CHECKSUM_SHA512) && (diff)) {
     data->net.checksum.type |= 0x8000;
   } else {
     entry->checksum.u64 = htobe64(be64toh(entry->checksum.u64) + 1);

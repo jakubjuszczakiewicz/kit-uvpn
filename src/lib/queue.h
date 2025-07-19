@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __QUEUE_H__
-#define __QUEUE_H__
+#pragma once
 
 #include <sys/types.h>
 #include <stdint.h>
@@ -44,5 +43,3 @@ queue_stat_t queue_close(queue_t queue);
 queue_stat_t queue_enqueue(queue_t queue, const void * data, size_t data_size,
     unsigned int needs_free, uint64_t timeout_ns);
 double queue_fill_ratio(queue_t queue);
-
-#endif

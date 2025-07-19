@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __TCP_C_H__
-#define __TCP_C_H__
+#pragma once
 
 #define TCP_CONN_STAT_OK                    0
 #define TCP_CONN_STAT_ERROR_INVALID_SOCKET  1
@@ -41,4 +40,3 @@ tcp_conn_stat_t tcp_conn_write(tcp_conn_t conn, const void * output,
 
 unsigned int tcp_conn_get_mss(tcp_conn_t conn);
 
-#endif

@@ -1,3 +1,7 @@
+/* Copyright (c) 2025 Jakub Juszczakiewicz
+ * All rights reserved.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

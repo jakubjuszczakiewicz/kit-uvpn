@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __WORKERS_H__
-#define __WORKERS_H__
+#pragma once
 
 #include <stddef.h>
 #include <queue.h>
@@ -68,5 +67,3 @@ void crypto_out_consumer(void * data, size_t data_size,
 void conn_consumer(void * data, size_t data_size,
     void (*clean_up)(struct queue_desc_t volatile *, unsigned int),
     struct queue_desc_t volatile * cleanup_queue, unsigned int cleanup_task_id);
-
-#endif

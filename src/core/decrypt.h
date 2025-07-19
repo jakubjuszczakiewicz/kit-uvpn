@@ -1,12 +1,9 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __DECRYPT_H__
-#define __DECRYPT_H__
+#pragma once
 
 #include "global.h"
 
 void decrypt_worker(void * data, size_t data_size);
-
-#endif

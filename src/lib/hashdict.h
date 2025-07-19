@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __HASHDICT_C__
-#define __HASHDICT_C__
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -37,5 +36,3 @@ void hashdict_iterate_callback(hashdict_t hashdict,
     void (*callback)(void *, void *), void * callback_data);
 
 size_t hashdict_size(hashdict_t hashdict);
-
-#endif

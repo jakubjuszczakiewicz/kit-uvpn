@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __PERF_H__
-#define __PERF_H__
+#pragma once
 
 #ifdef PERF_COUNTERS
 
@@ -65,5 +64,4 @@ void perf_init(struct perf_counters * perf_counters);
 void dump_perf_counters(const char * path,
     const struct perf_counters * perf_counters, double queue_fill);
 
-#endif
 #endif

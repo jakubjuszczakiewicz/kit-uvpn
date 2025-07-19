@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __RANDOM_H__
-#define __RANDOM_H__
+#pragma once
 
 #include <stddef.h>
 
@@ -11,5 +10,3 @@ void random_init(void);
 void random_done(void);
 
 int random_bytes(size_t bytes, unsigned char * data);
-
-#endif

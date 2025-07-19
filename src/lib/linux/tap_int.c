@@ -40,7 +40,7 @@ int tap_create(char * dev, int * fds, unsigned int count)
   }
 
   if (count < 2) {
-    ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE;
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE | IFF_NAPI;
 
     if ((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0) {
       close(fd);
@@ -55,7 +55,7 @@ int tap_create(char * dev, int * fds, unsigned int count)
     return 0;
   }
 
-  ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_MULTI_QUEUE;
+  ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_MULTI_QUEUE | IFF_NAPI;
   int i;
   
   for (i = 0; i < count; i++) {

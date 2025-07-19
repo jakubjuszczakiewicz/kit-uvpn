@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __CONSTSTR_H__
-#define __CONSTSTR_H__
+#pragma once
 
 #include <stddef.h>
 #include "global.h"
@@ -25,5 +24,3 @@ int conn_mode_str_to_int(const char * mode);
 const char * conn_status_flag_to_str(unsigned int flags);
 
 int queue_layout_str_to_int(const char * queue_layout);
-
-#endif

@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -6,7 +6,7 @@
 #include <string.h>
 
 #define VERSION_MAJOR 3
-#define VERSION_MINOR 4
+#define VERSION_MINOR 5
 #define VERSION_PATCH 0
 #define VERSION_SUBSTR ""
 

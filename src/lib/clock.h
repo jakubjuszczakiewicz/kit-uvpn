@@ -1,12 +1,10 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Krypto-IT Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __CLOCK_H__
-#define __CLOCK_H__
+#pragma once
 
 #include <stdint.h>
 
 uint64_t getnow_monotonic(void);
 
-#endif

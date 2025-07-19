@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __CONNECTION_H__
-#define __CONNECTION_H__
+#pragma once
 
 #include "global.h"
 #include "config.h"
@@ -26,5 +25,3 @@ int add_tcp_conn(struct tcp_conn_desc_t new_conn,
 void rem_tcp_conn(conn_id_t old_conn);
 
 void conns_manager_thread(void *);
-
-#endif

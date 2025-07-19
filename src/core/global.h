@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __GLOBAL_H__
-#define __GLOBAL_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdatomic.h>
@@ -195,6 +194,12 @@ extern volatile int end_now;
 #define EXTRA_INFO_STRUCT_VER_1       1
 #define EXTRA_INFO_STRUCT_VER_DEFAULT EXTRA_INFO_STRUCT_VER_1
 
+#define VLAN_OPT_DO_NOTHING    0
+#define VLAN_OPT_REMOVE_OUTPUT 1
+#define VLAN_OPT_ADD_INPUT     2
+
+#define MAX_VLAN_ID 4096
+
 #define KIT_CRYPT_C_LIB_NAME "kit-crypto-c"
 
 #define VERSION_STR_LEN           16
@@ -225,10 +230,14 @@ struct packet_record
     struct {
       encrypt_key_t encrypt_key;
       checksum_t checksum;
+      uint16_t vlan_id;
+      uint32_t vlan_mask[MAX_VLAN_ID / 32];
     } conn;
     struct {
       encrypt_key_t key;
       checksum_t checksum;
+      uint16_t vlan_id;
+      uint16_t vlan_opt;
       uint16_t packet_size;
       conn_id_t bcast_idx;
       uint32_t pkt_idx;
@@ -298,6 +307,8 @@ struct tcp_conn_info
   unsigned int drops_counter;
   uint64_t start_time;
   char send_extra_info;
+  uint16_t vlan_id;
+  uint32_t vlan_mask[MAX_VLAN_ID / 32];
 };
 
 struct tap_conn_info
@@ -316,6 +327,8 @@ struct tap_conn_info
 
   void * io_read_thread;
   void * io_write_thread[TAP_QUEUES];
+
+  uint32_t vlan_mask[MAX_VLAN_ID / 32];
 };
 
 extern const unsigned short default_keepalive[2];
@@ -335,5 +348,3 @@ void log_extra_info_strs(const char * prefix, const char * cryptolib_name,
     const char * cryptolib_ver, const char * os_name, const char * ct_str);
 int is_mcast(unsigned char * mac);
 int sem_wait_int(sem_t *sem, volatile unsigned int * local_end_now);
-
-#endif

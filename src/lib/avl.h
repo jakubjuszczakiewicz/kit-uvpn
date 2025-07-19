@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __AVL_H__
-#define __AVL_H__
+#pragma once
 
 #include <stddef.h>
 
@@ -24,5 +23,3 @@ void avl_iterate_callback(avl_t avl, void (*callback)(void *, void *),
     void * callback_data);
 
 size_t avl_size(avl_t avl);
-
-#endif

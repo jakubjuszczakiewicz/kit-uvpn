@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.1)
+# Copyright (c) 2025 Jakub Juszczakiewicz
+# All rights reserved.
+
+cmake_minimum_required(VERSION 3.1..3.6)
 project(uVPN)
 set(SOURCE_FILES
   src/lib/rsa.c
@@ -34,6 +37,7 @@ set(SOURCE_FILES
   src/core/workers.c
   src/core/connection.c
   src/core/version.c
+  src/core/vlan.c
 )
 
 set(SOURCE_FILES_RSAGEN

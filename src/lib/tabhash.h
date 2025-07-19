@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __TABHASH_C__
-#define __TABHASH_C__
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -20,5 +19,3 @@ tabhash24_t tabhash24_create(uint16_t input_size);
 void tabhash24_dispose(tabhash24_t tabhash);
 void tabhash24_reinit(tabhash24_t tabhash);
 uint32_t tabhash24_hash(const tabhash24_t tabhash, const uint8_t * input);
-
-#endif

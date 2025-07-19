@@ -1,9 +1,8 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
-#ifndef __TH_POOL_H__
-#define __TH_POOL_H__
+#pragma once
 
 #include <stddef.h>
 
@@ -15,5 +14,3 @@ struct thpool_t * thpool_create(size_t threads_count, thpool_func func);
 void thpool_dispose(struct thpool_t * thpool);
 
 void thpool_push(struct thpool_t * thpool, void * data);
-
-#endif

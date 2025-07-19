@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -45,6 +45,7 @@ void tap_io_read(void * arg)
     fd[i].revents = 0;
   }
 
+  logger_printf(LOGGER_DEBUG, "TAP IO read start");
   while (!end_now) {
     unsigned int buffer_size = sizeof(buffer.net) -
         offsetof(struct packet_record, net.ethframe.dst_mac);
@@ -100,6 +101,23 @@ void tap_io_read(void * arg)
       buffer.live_start = getnow_monotonic();
 #endif
 
+      if (((buffer.net.ethframe.proto[0] << 8) + buffer.net.ethframe.proto[1])
+          == VLAN_PROTO_ID) {
+        uint16_t vlan_id = ((buffer.net.ethframe.proto[2] << 8) +
+            buffer.net.ethframe.proto[3]) & 0xFFF;
+        if (vlan_id > MAX_VLAN_ID)
+          continue;
+        uint32_t t = (conn->vlan_mask[vlan_id >> 5] >> (vlan_id & 0x1F)) & 1;
+        if (t == 0) {
+          continue;
+        }
+
+        buffer.net.vlan_opt = VLAN_OPT_DO_NOTHING;
+        buffer.net.vlan_id = vlan_id;
+      } else {
+        buffer.net.vlan_opt = VLAN_OPT_DO_NOTHING;
+        buffer.net.vlan_id = 0;
+      }
       if (!is_mcast(buffer.net.ethframe.dst_mac)) {
         buffer.destination = -1;
         buffer.net.pkt_idx = 0;
@@ -206,6 +224,7 @@ void tap_init(struct tap_conn_info * conn, int * dev_sock, conn_id_t conn_id)
   }
 
   conn->io_read_thread = thread_new(tap_io_read, conn);
+  memcpy(conn->vlan_mask, config->tap_vlans, sizeof(conn->vlan_mask));
 }
 
 void tap_done(struct tap_conn_info * conn)

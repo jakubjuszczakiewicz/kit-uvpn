@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -88,6 +88,10 @@ static int tcp_new_conn(struct tcp_conn_info * data, int force)
   record.conn.encrypt_key.type = data->cipher;
   record.conn.checksum.type = data->checksum;
   memcpy(record.conn.checksum.key, data->hmac_out_key, MAX_CHECKSUM_KEY_BYTES);
+
+  record.conn.vlan_id = data->vlan_id;
+  memcpy(record.conn.vlan_mask, data->vlan_mask, sizeof(data->vlan_mask));
+
 #ifdef PERF_COUNTERS
   record.perf_start = getnow_monotonic();
 #else
@@ -131,12 +135,18 @@ void tcp_ping(struct tcp_conn_info * data, int flag, uint32_t pong)
   record.source = data->conn_id;
   record.destination = data->conn_id;
   memset(&record.net.key, 0, sizeof(record.net.key));
-  record.net.packet_size = 0;
   random_bytes(sizeof(record.net.pkt_idx),
       (unsigned char *)&record.net.pkt_idx);
   record.net.type =
       htobe16(pong ? PKT_TYPE_ETHERNET_PONG : PKT_TYPE_ETHERNET_PING);
-  record.net.length = 0;
+  record.net.length = htobe16(0);
+  record.net.packet_size = 0;
+  record.net.vlan_id = data->vlan_id;
+  if (data->vlan_id > 0) {
+    record.net.vlan_opt = VLAN_OPT_ADD_INPUT;
+  } else {
+    record.net.vlan_opt = VLAN_OPT_DO_NOTHING;
+  }
   record.net.checksum.type = 0;
   memset(record.conn.checksum.key, 0, MAX_CHECKSUM_KEY_BYTES);
 
@@ -145,7 +155,7 @@ void tcp_ping(struct tcp_conn_info * data, int flag, uint32_t pong)
 #else
   record.live_start = getnow_monotonic();
 #endif
-  uint16_t pkg_length = BLOCK_SIZE(0);
+  uint16_t pkg_length = BLOCK_SIZE(record.net.length);
 
   size_t data_size = ((unsigned char *)&record.net.pkt_idx -
         (unsigned char *)&record) + pkg_length + CHECKSUM_SIZE_MAX;
@@ -384,8 +394,9 @@ static int tcp_io_read_auth_recv(struct tcp_conn_info * data)
   unsigned char * local_buffer_2 = int_malloc(AUTH_BUFFER_SIZE);
   size_t full_size = 0;
   size_t max_size = AUTH_BUFFER_SIZE;
+  int x = 0;
 
-  if (tcp_io_read_data(&data->tcp_conn, local_buffer, tcp_io_need_read_rsa,
+  if (x = tcp_io_read_data(&data->tcp_conn, local_buffer, tcp_io_need_read_rsa,
       &max_size, TCP_READ_AUTH_TIMEOUT_SEC, &full_size)) {
     int_free(local_buffer);
     int_free(local_buffer_2);
@@ -516,6 +527,11 @@ static int tcp_io_read_auth_recv(struct tcp_conn_info * data)
       MAX_CLIENT_NAME_LENGTH - 1);
   data->timeout[0] = config->static_servers[i].keepalive[0];
   data->timeout[1] = config->static_servers[i].keepalive[1];
+
+  data->vlan_id = config->static_servers[i].vlan_id;
+  memcpy(data->vlan_mask, config->static_servers[i].allowed_vlans,
+      sizeof(data->vlan_mask));
+
   if (data->cipher < 0)
     data->cipher = cipher_mode_str_to_int(config->static_servers[i].cipher);
   if (data->checksum < 0)
@@ -614,7 +630,6 @@ static int tcp_io_read_auth_recv(struct tcp_conn_info * data)
   i_rwlock_rdunlock(&conns_sem);
   int_free(local_buffer);
   int_free(local_buffer_2);
-
   return 0;
 }
 
@@ -624,8 +639,9 @@ int tcp_io_read_key_send(struct tcp_conn_info * data)
   size_t key_size = enc_keysize + get_checksum_hmac_key_size(data->checksum);
 
   uint8_t key[MAX_CIPHER_KEY_SIZE + MAX_CHECKSUM_KEY_BYTES];
-  if (random_bytes(key_size, (unsigned char *)key))
+  if (random_bytes(key_size, (unsigned char *)key)) {
     return 1;
+  }
 
   memcpy(data->enc_key, key, enc_keysize);
   memcpy(data->hmac_out_key, &key[enc_keysize],
@@ -889,9 +905,6 @@ static void tcp_io_read_thread(void * data_void)
       logger_printf(LOGGER_DEBUG, "Auth error 1");
 
       exec_with_env(config->onClientConnectFail, 3, buffer);
-
-      logger_printf(LOGGER_ERROR, "Auth error: \"%s\"", data->name);
-
       goto tcp_read_end;
     }
     if (tcp_io_read_auth_recv(data)) {
@@ -903,9 +916,6 @@ static void tcp_io_read_thread(void * data_void)
       logger_printf(LOGGER_DEBUG, "Auth error 2");
 
       exec_with_env(config->onClientConnectFail, 3, buffer);
-
-      logger_printf(LOGGER_ERROR, "Auth error: \"%s\"", data->name);
-
       goto tcp_read_end;
     }
   } else {
@@ -914,9 +924,6 @@ static void tcp_io_read_thread(void * data_void)
       snprintf(buffer, sizeof(buffer) - 1,
           "CLIENT_ADDR=[%s]:%hu%cNAME=%s%cCLIENT_NAME=%s%c", data->ipstr,
           data->port, 0, config->name, 0, data->name, 0);
-
-      logger_printf(LOGGER_ERROR, "Auth error: \"%s\"", data->name);
-
       exec_with_env(config->onClientConnectFail, 3, buffer);
 
       goto tcp_read_end;
@@ -926,9 +933,6 @@ static void tcp_io_read_thread(void * data_void)
       snprintf(buffer, sizeof(buffer) - 1,
           "CLIENT_ADDR=[%s]:%hu%cNAME=%s%cCLIENT_NAME=%s%c", data->ipstr,
           data->port, 0, config->name, 0, data->name, 0);
-
-      logger_printf(LOGGER_ERROR, "Auth error: \"%s\"", data->name);
-
       exec_with_env(config->onClientConnectFail, 3, buffer);
 
       goto tcp_read_end;
@@ -955,7 +959,6 @@ static void tcp_io_read_thread(void * data_void)
       goto tcp_read_end;
     }
   }
-
   tcp_new_conn(data, 1);
 
   logger_printf(LOGGER_INFO, "Auth OK: \"%s\"", data->name);
@@ -1141,8 +1144,8 @@ static void tcp_io_read_thread(void * data_void)
     size_t full_size = size + checksum_size;
 
     if (size > MAX_MTU + CHECKSUM_SIZE_MAX) {
-      logger_printf(LOGGER_ERROR, "Encrypted data error with \"%s\"",
-          data->name);
+      logger_printf(LOGGER_ERROR, "Encrypted data error with \"%s\" (%hu %hu)",
+          data->name, size, full_size);
       break;
     }
 
@@ -1167,8 +1170,7 @@ static void tcp_io_read_thread(void * data_void)
     data->read_blocks += blocks >> 4;
     uint64_t * hmac_key = (uint64_t *)data->hmac_in_key;
         *hmac_key = htobe64(be64toh(*hmac_key) + 1);
-
-    if ((type == PKT_TYPE_ETHERNET_ETHFRAME) || 
+    if ((type == PKT_TYPE_ETHERNET_ETHFRAME) ||
         (type == PKT_TYPE_ETHERNET_ENC_PASSWORD) ||
         (type == PKT_TYPE_ETHERNET_ENC_SESSID) ||
         (type == PKT_TYPE_ETHERNET_ENC_EXTRA_INFO) ||
@@ -1206,6 +1208,14 @@ static void tcp_io_read_thread(void * data_void)
         record->net.key.type = data->cipher;
         record->net.bcast_idx = 1;
         record->net.packet_size = size;
+
+        if (data->vlan_id != 0) {
+          record->net.vlan_id = data->vlan_id;
+          record->net.vlan_opt = VLAN_OPT_ADD_INPUT;
+        } else {
+          record->net.vlan_id = 0;
+          record->net.vlan_opt = VLAN_OPT_DO_NOTHING;
+        }
 
         size_t data_length = STR_OFFS + pkg_length;
 
@@ -1414,6 +1424,8 @@ void tcp_init(struct tcp_conn_info * info, tcp_conn_t conn, conn_id_t conn_id,
       info->output_auth_method = config->output_auth_method;
     else
       info->output_auth_method = OUTPUT_AUTH_METHOD_4;
+    info->vlan_id = config->vlan_id;
+    memcpy(info->vlan_mask, config->allowed_vlans, sizeof(info->vlan_mask));
   } else {
     info->limit_output_buffer_size = MAX_BUFFER_SIZE;
     info->output_auth_method = -1;
@@ -1466,12 +1478,12 @@ void tcp_init(struct tcp_conn_info * info, tcp_conn_t conn, conn_id_t conn_id,
     info->send_extra_info = -1;
   }
 
+  atomic_store(&info->close_thread, 0);
   info->start_time = getnow_monotonic();
   info->last_read = getnow_monotonic() / 1000000000LLU;
   info->drops_counter = 0;
   info->io_read_thread = thread_new(tcp_io_read_thread, info);
   info->io_write_thread = thread_new(tcp_io_write_thread, info);
-  atomic_store(&info->close_thread, 0);
 }
 
 void tcp_done(struct tcp_conn_info * info)
@@ -1681,7 +1693,7 @@ void tcp_worker(struct tcp_conn_info * info, void * void_data, size_t data_size)
           "CLIENT_ADDR=[%s]:%hu%cNAME=%s%cCLIENT_NAME=%s%c", info->ipstr,
           info->port, 0, config->name, 0, info->name, 0);
 
-      int mode = 0;
+      int mode = CONN_MODE_NORMAL;
       for (size_t j = 0; j < config->static_servers_count; j++) {
         if (config->static_servers[j].conn_id == info->conn_id) {
           logger_printf(LOGGER_DEBUG, "Save session id connection with \"%s\"",

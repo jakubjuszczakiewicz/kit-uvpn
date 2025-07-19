@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -49,9 +49,24 @@ void decrypt_worker(void * void_data, size_t data_size)
 
     for (uint16_t i = 0; i < blocks; i += 16, encdata += 16) {
       kit_twofish_init_128(&tf_key, (unsigned char *)key);
+      uint8_t * k = (uint8_t *)key;
 
-      key[0] ^= *(uint64_t *)encdata;
-      key[1] ^= *(((uint64_t *)encdata) + 1);
+      k[0] ^= encdata[0];
+      k[1] ^= encdata[1];
+      k[2] ^= encdata[2];
+      k[3] ^= encdata[3];
+      k[4] ^= encdata[4];
+      k[5] ^= encdata[5];
+      k[6] ^= encdata[6];
+      k[7] ^= encdata[7];
+      k[8] ^= encdata[8];
+      k[9] ^= encdata[9];
+      k[10] ^= encdata[10];
+      k[11] ^= encdata[11];
+      k[12] ^= encdata[12];
+      k[13] ^= encdata[13];
+      k[14] ^= encdata[14];
+      k[15] ^= encdata[15];
 
       key[0] = be64toh(key[0]);
       key[1] = be64toh(key[1]);
@@ -68,14 +83,27 @@ void decrypt_worker(void * void_data, size_t data_size)
   } else if (data->net.key.type == CIPHER_TYPE_TWOFISH_CTR) {
     kit_twofish_key tf_key;
     kit_twofish_init_128(&tf_key, (unsigned char *)&key[2]);
-    uint64_t tmp[2];
+    uint8_t tmp[16];
 
     for (uint16_t i = 0; i < blocks; i += 16, encdata += 16) {
-      kit_twofish_encrypt_block(&tf_key, (unsigned char *)tmp,
-          (unsigned char *)key);
+      kit_twofish_encrypt_block(&tf_key, tmp, (unsigned char *)key);
 
-      *(uint64_t *)encdata ^= tmp[0];
-      *(((uint64_t *)encdata) + 1) ^= tmp[1];
+      encdata[0] ^= tmp[0];
+      encdata[1] ^= tmp[1];
+      encdata[2] ^= tmp[2];
+      encdata[3] ^= tmp[3];
+      encdata[4] ^= tmp[4];
+      encdata[5] ^= tmp[5];
+      encdata[6] ^= tmp[6];
+      encdata[7] ^= tmp[7];
+      encdata[8] ^= tmp[8];
+      encdata[9] ^= tmp[9];
+      encdata[10] ^= tmp[10];
+      encdata[11] ^= tmp[11];
+      encdata[12] ^= tmp[12];
+      encdata[13] ^= tmp[13];
+      encdata[14] ^= tmp[14];
+      encdata[15] ^= tmp[15];
 
       key[0] = be64toh(key[0]);
       key[1] = be64toh(key[1]);
@@ -92,9 +120,24 @@ void decrypt_worker(void * void_data, size_t data_size)
 
     for (uint16_t i = 0; i < blocks; i += 16, encdata += 16) {
       kit_aes_init_128(&aes_key, (unsigned char *)key);
+      uint8_t * k = (uint8_t *)key;
 
-      key[0] ^= *(uint64_t *)encdata;
-      key[1] ^= *(((uint64_t *)encdata) + 1);
+      k[0] ^= encdata[0];
+      k[1] ^= encdata[1];
+      k[2] ^= encdata[2];
+      k[3] ^= encdata[3];
+      k[4] ^= encdata[4];
+      k[5] ^= encdata[5];
+      k[6] ^= encdata[6];
+      k[7] ^= encdata[7];
+      k[8] ^= encdata[8];
+      k[9] ^= encdata[9];
+      k[10] ^= encdata[10];
+      k[11] ^= encdata[11];
+      k[12] ^= encdata[12];
+      k[13] ^= encdata[13];
+      k[14] ^= encdata[14];
+      k[15] ^= encdata[15];
 
       key[0] = be64toh(key[0]);
       key[1] = be64toh(key[1]);
@@ -111,14 +154,27 @@ void decrypt_worker(void * void_data, size_t data_size)
   } else if (data->net.key.type == CIPHER_TYPE_AES_CTR) {
     kit_aes_key aes_key;
     kit_aes_init_128(&aes_key, (unsigned char *)&key[2]);
-    uint64_t tmp[2];
+    uint8_t tmp[16];
 
     for (uint16_t i = 0; i < blocks; i += 16, encdata += 16) {
-      kit_aes_encrypt_block(&aes_key, (unsigned char *)tmp,
-          (unsigned char *)key);
+      kit_aes_encrypt_block(&aes_key, tmp, (unsigned char *)key);
 
-      *(uint64_t *)encdata ^= tmp[0];
-      *(((uint64_t *)encdata) + 1) ^= tmp[1];
+      encdata[0] ^= tmp[0];
+      encdata[1] ^= tmp[1];
+      encdata[2] ^= tmp[2];
+      encdata[3] ^= tmp[3];
+      encdata[4] ^= tmp[4];
+      encdata[5] ^= tmp[5];
+      encdata[6] ^= tmp[6];
+      encdata[7] ^= tmp[7];
+      encdata[8] ^= tmp[8];
+      encdata[9] ^= tmp[9];
+      encdata[10] ^= tmp[10];
+      encdata[11] ^= tmp[11];
+      encdata[12] ^= tmp[12];
+      encdata[13] ^= tmp[13];
+      encdata[14] ^= tmp[14];
+      encdata[15] ^= tmp[15];
 
       key[0] = be64toh(key[0]);
       key[1] = be64toh(key[1]);

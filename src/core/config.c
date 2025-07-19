@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Krypto-IT Jakub Juszczakiewicz
+/* Copyright (c) 2025 Jakub Juszczakiewicz
  * All rights reserved.
  */
 
@@ -30,6 +30,8 @@ static int parser_ushort(const char * str, size_t length, unsigned int count,
 static int parser_uchar(const char * str, size_t length, unsigned int count,
     void * result);
 static int parser_uchar_bool(const char * str, size_t length,
+    unsigned int count, void * result);
+static int parser_ushorts_vlan_bitmap(const char * str, size_t length,
     unsigned int count, void * result);
 
 struct config_args
@@ -80,6 +82,8 @@ struct config_args config_const[] =
       offsetof(struct config_t, conn_stat_dump_file) },
   { "conn_stat_dump_interval", 1, parser_ushort,
       offsetof(struct config_t, conn_stat_dump_interval) },
+  { "tap_vlans", 1, parser_ushorts_vlan_bitmap,
+      offsetof(struct config_t, tap_vlans) },
   { "onTapCreate", 1, parser_string, offsetof(struct config_t, onTapCreate) },
   { "onTcpListen", 1, parser_string, offsetof(struct config_t, onTcpListen) },
   { "onClientConnect", 1, parser_string, offsetof(struct config_t,
@@ -133,6 +137,10 @@ struct config_args servers_ini[] = {
       offsetof(struct static_servers_config_t, send_sessid) },
   { "send_extra_info", 1, parser_uchar_bool,
       offsetof(struct static_servers_config_t, send_extra_info) },
+  { "vlan_id", 1, parser_ushort,
+      offsetof(struct static_servers_config_t, vlan_id) },
+  { "allowed_vlans", 1, parser_ushorts_vlan_bitmap,
+      offsetof(struct static_servers_config_t, allowed_vlans) },
 };
 
 static int parse_args(int argc, char * argv[]);
@@ -264,6 +272,7 @@ static int next_section(const char * section_name, void * void_data)
       sizeof(*pair->sections) * pair->count);
   memset(&pair->sections[pair->count - 1], 0, sizeof(*pair->sections));
 
+  pair->sections[pair->count - 1].allowed_vlans[0] = 1;
   pair->sections[pair->count - 1].name = int_strdup(section_name);
 
   return 0;
@@ -324,6 +333,7 @@ int config_load(int argc, char * argv[])
     config_done();
   config = int_malloc(sizeof(struct config_t));
   memset(config, 0, sizeof(struct config_t));
+  config->tap_vlans[0] = 1;
 
   return parse_args(argc, argv);
 }
@@ -519,6 +529,48 @@ static int parser_uchar_bool(const char * str, size_t length,
   return 1;
 }
 
+static int parser_ushorts_vlan_bitmap(const char * str, size_t length,
+    unsigned int count, void * result)
+{
+  const char * end = str;
+  uint32_t * out = (uint32_t *)result;
+  memset(out, 0, MAX_VLAN_ID / 32);
+
+  for (int i = 0; *end != 0; i++) {
+    unsigned long x = strtoul(end, (char **)&end, 10);
+    unsigned long y = x;
+    if (x >= MAX_VLAN_ID) {
+      return 1;
+    }
+    if ((*end <= ' ')) {
+      out[(x >> 5)] |= 1 << (x & 0x1F);
+      return 0;
+    }
+    if (*end == '-') {
+      end++;
+      y = strtoul(end, (char **)&end, 10);
+      if (y >= MAX_VLAN_ID) {
+        return 1;
+      }
+      if (y < x) {
+        unsigned long t = x;
+        x = y;
+        y = t;
+      }
+    }
+    if ((*end != ',') && (*end != 0)) {
+      return 1;
+    }
+    *end++;
+
+    for (unsigned long j = x; j <= y; j++) {
+      out[(j >> 5)] |= 1 << (j & 0x1F);
+    }
+  }
+
+  return 0;
+}
+
 static struct RSA * parse_rsa_file(char * file)
 {
   char * n_ptr = strstr(file, "n=[");
@@ -700,6 +752,14 @@ long server_config_cmp_full(const struct static_servers_config_t * a,
     return r;
 
   r = strcmp_null(a->password_injecter, b->password_injecter);
+  if (r)
+    return r;
+
+  r = a->vlan_id - b->vlan_id;
+  if (r)
+    return r;
+
+  r = memcmp(a->allowed_vlans, b->allowed_vlans, sizeof(b->allowed_vlans));
   if (r)
     return r;
 
