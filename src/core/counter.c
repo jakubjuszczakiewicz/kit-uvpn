@@ -182,15 +182,8 @@ void counter_worker_raw_net(void * void_data, size_t data_size)
 
   uint16_t length = data->net.packet_size +
       get_checksum_size(entry->checksum.type) + diff;
-
-  if ((data->net.checksum.type == entry->checksum.type) &&
-      (data->net.checksum.type >= CHECKSUM_SHA224) &&
-      (data->net.checksum.type <= CHECKSUM_SHA512) && (diff != 0)) {
-    data->net.checksum.type |= 0x8000;
-  } else {
-    entry->checksum.u64 = htobe64(be64toh(entry->checksum.u64) + 1);
-    memcpy(&data->net.checksum, &entry->checksum, sizeof(entry->checksum));
-  }
+  entry->checksum.u64 = htobe64(be64toh(entry->checksum.u64) + 1);
+  memcpy(&data->net.checksum, &entry->checksum, sizeof(entry->checksum));
 
   uint32_t blocks = BLOCK_SIZE(length);
 
